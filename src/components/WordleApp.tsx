@@ -24,7 +24,7 @@ export function WordleApp() {
   const [solvedRow, setSolvedRow] = useState<number | null>(null);
   const [animatingRow, setAnimatingRow] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
+  const [showInvalidWord, setShowInvalidWord] = useState(false);
 
   useEffect(() => {
     const lista = getListOfWords();
@@ -160,7 +160,8 @@ export function WordleApp() {
               }
             }, totalDelay + 400);
           } else {
-            window.alert("Palabra no en el diccionario");
+            setShowInvalidWord(true);
+            setTimeout(() => setShowInvalidWord(false), 1400);
           }
         }
         return;
@@ -218,6 +219,11 @@ export function WordleApp() {
           }}
           message={solvedRow !== null ? `ACERT` : `${wordSelected}`}
         />
+      )}
+      {showInvalidWord && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-absent  text-text px-4 py-2 rounded shadow-lg animate-fade-in z-50">
+          Palabra no válida
+        </div>
       )}
     </>
   );

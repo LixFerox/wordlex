@@ -20,6 +20,9 @@
 .animate-fade-in {
   animation: fade-in 0.6s ease-in-out both;
 }
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out both;
+}
 
 @keyframes flip-y {
   0% {
@@ -36,5 +39,16 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

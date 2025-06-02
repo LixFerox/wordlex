@@ -1,0 +1,12 @@
+---
+const { char, color, index } = Astro.props;
+---
+
+<div
+  style={` animation-delay: ${index * 0.2}s;`}
+  class={`flex flex-col items-center justify-center size-15 aspect-square rounded-lg uppercase text-3xl font-bold animate-flip-y border-2 border-gray-200/20 ${color}`}
+>
+  <p style={`animation-delay: ${index * 0.2 + 0.2}s;`} class="animate-fade-in">
+    {char}
+  </p>
+</div>

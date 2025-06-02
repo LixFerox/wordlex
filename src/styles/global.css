@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: #131517;
+  --color-text: #e5e7eb;
+  --color-key-default: #3f4752;
+  --color-key-hover: #596270;
+
+  --color-correct: #43a047;
+  --color-present: #e4a81d;
+  --color-absent: #757575;
+  --color-error: #bb3429;
+}
+
+.animate-flip-y {
+  animation: flip-y 0.6s ease-in-out both;
+}
+.animate-fade-in {
+  animation: fade-in 0.6s ease-in-out both;
+}
+
+@keyframes flip-y {
+  0% {
+    transform: scaleY(-1);
+    background-color: transparent;
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

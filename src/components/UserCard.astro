@@ -1,0 +1,18 @@
+---
+const { index, name, score } = Astro.props;
+---
+
+<div class="grid grid-cols-3 items-center p-4 overflow-hidden">
+  <p
+    class:list={[
+      "justify-self-start px-2 rounded-lg",
+      index === 0 && "bg-yellow-500/80",
+      index === 1 && "bg-gray-500/80",
+      index === 2 && "bg-amber-500/80",
+    ]}
+  >
+    {index + 1}
+  </p>
+  <p class="justify-self-center uppercase">{name}</p>
+  <p class="justify-self-end">{score}</p>
+</div>

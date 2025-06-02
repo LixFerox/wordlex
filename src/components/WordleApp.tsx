@@ -9,45 +9,87 @@ import {
   resetWord,
 } from "~/lib/wordle.ts";
 
+const EMPTY_6x5 = () => Array.from({ length: 6 }, () => Array(5).fill(""));
+
+const COLOR_PRIORITY = {
+  green: 3,
+  orange: 2,
+  red: 1,
+  gray: 0,
+} as const;
+
+type Color = keyof typeof COLOR_PRIORITY;
+
 export function WordleApp() {
   const [words, setWords] = useState<string[]>([]);
   const [wordSelected, setWordSelected] = useState<string>("");
-  const [currentRow, setCurrentRow] = useState<number>(0);
-  const [currentCol, setCurrentCol] = useState<number>(0);
-  const [letters, setLetters] = useState<string[][]>(
-    Array.from({ length: 6 }, () => Array(5).fill(""))
-  );
-  const [colors, setColors] = useState<string[][]>(
-    Array.from({ length: 6 }, () => Array(5).fill(""))
-  );
+  const [letters, setLetters] = useState<string[][]>(EMPTY_6x5);
+  const [colors, setColors] = useState<string[][]>(EMPTY_6x5);
   const [keyColors, setKeyColors] = useState<Record<string, string>>({});
+  const [currentRow, setCurrentRow] = useState(0);
+  const [currentCol, setCurrentCol] = useState(0);
   const [solvedRow, setSolvedRow] = useState<number | null>(null);
   const [animatingRow, setAnimatingRow] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showInvalidWord, setShowInvalidWord] = useState(false);
 
   useEffect(() => {
-    const lista = getListOfWords();
-    const palabra = getCurrentWord();
-    setWords(lista);
-    setWordSelected(palabra);
+    setWords(getListOfWords());
+    setWordSelected(getCurrentWord());
   }, []);
+
+  const resetBoard = () => {
+    setLetters(EMPTY_6x5);
+    setColors(EMPTY_6x5);
+    setKeyColors({});
+    setCurrentRow(0);
+    setCurrentCol(0);
+    setSolvedRow(null);
+  };
 
   const restartGame = () => {
     generateWord();
     resetWord();
-    const nueva = getCurrentWord();
-    setWordSelected(nueva);
+    setWordSelected(getCurrentWord());
   };
 
-  useEffect(() => {
-    setCurrentRow(0);
-    setCurrentCol(0);
-    setLetters(Array.from({ length: 6 }, () => Array(5).fill("")));
-    setColors(Array.from({ length: 6 }, () => Array(5).fill("")));
-    setKeyColors({});
-    setSolvedRow(null);
-  }, [wordSelected]);
+  useEffect(resetBoard, [wordSelected]);
+
+  const updateColors = (guess: string, word: string) => {
+    const result = Array(5).fill("gray");
+    const used = Array(5).fill(false);
+    const wordArr = word.split("");
+
+    for (let i = 0; i < 5; i++) {
+      if (guess[i] === wordArr[i]) {
+        result[i] = "green";
+        used[i] = true;
+      }
+    }
+
+    for (let i = 0; i < 5; i++) {
+      if (result[i] !== "green") {
+        const idx = wordArr.findIndex((c, j) => c === guess[i] && !used[j]);
+        result[i] = idx !== -1 ? "orange" : "red";
+        if (idx !== -1) used[idx] = true;
+      }
+    }
+
+    return result;
+  };
+
+  const updateKeyColors = (letter: string, color: string) => {
+    setKeyColors((prev) => {
+      const existing = prev[letter];
+      if (
+        !existing ||
+        COLOR_PRIORITY[color as Color] > COLOR_PRIORITY[existing as Color]
+      ) {
+        return { ...prev, [letter]: color };
+      }
+      return prev;
+    });
+  };
 
   const handleKeyPress = useCallback(
     (key: string) => {
@@ -56,142 +98,79 @@ export function WordleApp() {
       if (/^[a-zñ]$/.test(key)) {
         if (currentCol < 5) {
           setLetters((prev) => {
-            const copia = prev.map((fila) => fila.slice());
-            copia[currentRow][currentCol] = key.toUpperCase();
-            return copia;
+            const copy = prev.map((row) => [...row]);
+            copy[currentRow][currentCol] = key.toUpperCase();
+            return copy;
           });
           setCurrentCol((c) => c + 1);
         }
         return;
       }
 
-      if (key === "del") {
-        if (currentCol > 0) {
-          setCurrentCol((c) => c - 1);
-          setLetters((prev) => {
-            const copia = prev.map((fila) => fila.slice());
-            copia[currentRow][currentCol - 1] = "";
-            return copia;
-          });
-        }
+      if (key === "del" && currentCol > 0) {
+        setCurrentCol((c) => c - 1);
+        setLetters((prev) => {
+          const copy = prev.map((row) => [...row]);
+          copy[currentRow][currentCol - 1] = "";
+          return copy;
+        });
         return;
       }
 
-      if (key === "ent") {
-        if (currentCol === 5) {
-          const guess = letters[currentRow].join("").toLowerCase();
-          if (words.includes(guess)) {
-            const newColors = Array(5).fill("gray");
-            const wordArr = wordSelected.split("");
-            const used = Array(5).fill(false);
+      if (key === "ent" && currentCol === 5) {
+        const guess = letters[currentRow].join("").toLowerCase();
 
-            for (let i = 0; i < 5; i++) {
-              if (guess[i] === wordArr[i]) {
-                newColors[i] = "green";
-                used[i] = true;
-              }
-            }
+        if (!words.includes(guess)) {
+          setShowInvalidWord(true);
+          setTimeout(() => setShowInvalidWord(false), 1400);
+          return;
+        }
 
-            for (let i = 0; i < 5; i++) {
-              if (newColors[i] !== "green") {
-                const index = wordArr.findIndex(
-                  (char, j) => char === guess[i] && !used[j]
-                );
-                if (index !== -1) {
-                  newColors[i] = "orange";
-                  used[index] = true;
-                } else {
-                  newColors[i] = "red";
-                }
-              }
-            }
+        const colorRow = updateColors(guess, wordSelected);
+        setAnimatingRow(currentRow);
 
-            setAnimatingRow(currentRow);
-
-            const priority = {
-              green: 3,
-              orange: 2,
-              red: 1,
-              gray: 0,
-            } as const;
-
-            type ColorKey = keyof typeof priority;
-
-            newColors.forEach((color, i) => {
-              setTimeout(() => {
-                const letter = letters[currentRow][i];
-
-                setColors((prev) => {
-                  const copia = prev.map((fila) => fila.slice());
-                  copia[currentRow][i] = color;
-                  return copia;
-                });
-
-                setKeyColors((prev) => {
-                  const existing = prev[letter];
-                  if (
-                    !existing ||
-                    priority[color as ColorKey] > priority[existing as ColorKey]
-                  ) {
-                    return { ...prev, [letter]: color };
-                  }
-                  return prev;
-                });
-              }, i * 200);
+        colorRow.forEach((color, i) => {
+          setTimeout(() => {
+            setColors((prev) => {
+              const copy = prev.map((row) => [...row]);
+              copy[currentRow][i] = color;
+              return copy;
             });
 
-            const totalDelay = newColors.length * 200;
+            updateKeyColors(letters[currentRow][i], color);
+          }, i * 200);
+        });
 
-            setTimeout(() => {
-              setAnimatingRow(null);
+        const delay = colorRow.length * 200;
 
-              if (guess === wordSelected) {
-                setSolvedRow(currentRow);
-                setTimeout(() => {
-                  setShowModal(true);
-                }, 800);
-              } else if (currentRow === 5) {
-                setTimeout(() => {
-                  setShowModal(true);
-                }, 800);
-              } else {
-                setCurrentRow((r) => r + 1);
-                setCurrentCol(0);
-              }
-            }, totalDelay + 400);
+        setTimeout(() => {
+          setAnimatingRow(null);
+          if (guess === wordSelected) {
+            setSolvedRow(currentRow);
+            setTimeout(() => setShowModal(true), 800);
+          } else if (currentRow === 5) {
+            setTimeout(() => setShowModal(true), 800);
           } else {
-            setShowInvalidWord(true);
-            setTimeout(() => setShowInvalidWord(false), 1400);
+            setCurrentRow((r) => r + 1);
+            setCurrentCol(0);
           }
-        }
-        return;
+        }, delay + 400);
       }
     },
     [currentRow, currentCol, letters, words, wordSelected]
   );
 
   useEffect(() => {
-    const downHandler = (e: KeyboardEvent) => {
+    const handler = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      if (k === "backspace") {
-        e.preventDefault();
-        handleKeyPress("del");
-        return;
-      }
-      if (k === "enter") {
-        e.preventDefault();
-        handleKeyPress("ent");
-        return;
-      }
-      if (/^[a-zñ]$/.test(k)) {
-        e.preventDefault();
-        handleKeyPress(k);
-      }
+      e.preventDefault();
+      if (k === "backspace") return handleKeyPress("del");
+      if (k === "enter") return handleKeyPress("ent");
+      if (/^[a-zñ]$/.test(k)) return handleKeyPress(k);
     };
-    window.addEventListener("keydown", downHandler);
-    return () => {
-      window.removeEventListener("keydown", downHandler);
-    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [handleKeyPress]);
 
   return (
@@ -211,17 +190,23 @@ export function WordleApp() {
           <Keyboard onPressKey={handleKeyPress} keyColors={keyColors} />
         </div>
       </footer>
+
       {showModal && (
         <Modal
           onRestart={() => {
             setShowModal(false);
             restartGame();
           }}
-          message={solvedRow !== null ? `ACERT` : `${wordSelected}`}
+          message={
+            solvedRow !== null
+              ? "¡ACERTASTE!"
+              : `La palabra era: ${wordSelected.toUpperCase()}`
+          }
         />
       )}
+
       {showInvalidWord && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-absent  text-text px-4 py-2 rounded shadow-lg animate-fade-in z-50">
+        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-absent text-text px-4 py-2 rounded shadow-lg animate-fade-down z-50">
           Palabra no válida
         </div>
       )}

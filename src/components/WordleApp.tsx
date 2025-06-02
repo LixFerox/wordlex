@@ -206,7 +206,7 @@ export function WordleApp() {
       )}
 
       {showInvalidWord && (
-        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-absent text-text px-4 py-2 rounded shadow-lg animate-fade-down z-50">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-absent  text-text px-4 py-2 rounded shadow-lg animate-fade-in z-50">
           Palabra no válida
         </div>
       )}

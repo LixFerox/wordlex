@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Board } from "./Board";
 import { Keyboard } from "./Keyboard";
+import { Modal } from "./Modal";
 import {
   getListOfWords,
   getCurrentWord,
@@ -11,7 +12,6 @@ import {
 export function WordleApp() {
   const [words, setWords] = useState<string[]>([]);
   const [wordSelected, setWordSelected] = useState<string>("");
-
   const [currentRow, setCurrentRow] = useState<number>(0);
   const [currentCol, setCurrentCol] = useState<number>(0);
   const [letters, setLetters] = useState<string[][]>(
@@ -23,6 +23,8 @@ export function WordleApp() {
   const [keyColors, setKeyColors] = useState<Record<string, string>>({});
   const [solvedRow, setSolvedRow] = useState<number | null>(null);
   const [animatingRow, setAnimatingRow] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     const lista = getListOfWords();
@@ -146,15 +148,11 @@ export function WordleApp() {
               if (guess === wordSelected) {
                 setSolvedRow(currentRow);
                 setTimeout(() => {
-                  alert("¡Has acertado!");
-                  restartGame();
+                  setShowModal(true);
                 }, 800);
               } else if (currentRow === 5) {
                 setTimeout(() => {
-                  alert(
-                    `Has perdido. La palabra era: ${wordSelected.toUpperCase()}`
-                  );
-                  restartGame();
+                  setShowModal(true);
                 }, 800);
               } else {
                 setCurrentRow((r) => r + 1);
@@ -212,6 +210,15 @@ export function WordleApp() {
           <Keyboard onPressKey={handleKeyPress} keyColors={keyColors} />
         </div>
       </footer>
+      {showModal && (
+        <Modal
+          onRestart={() => {
+            setShowModal(false);
+            restartGame();
+          }}
+          message={solvedRow !== null ? `ACERT` : `${wordSelected}`}
+        />
+      )}
     </>
   );
 }

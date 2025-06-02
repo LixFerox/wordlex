@@ -9,10 +9,10 @@ export function Modal({ message, onRestart }: EndModalProps) {
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-[#1e1f22] rounded-lg p-6 shadow-lg text-center animate-fade-in">
           <h2 className="text-xl font-bold mb-4">
-            {message === "ACERT" ? "¡Felicidades!" : "Juego Terminado"}
+            {message === "¡ACERTASTE!" ? "¡Felicidades!" : "Juego Terminado"}
           </h2>
           <p className="mb-4">
-            {message === "ACERT"
+            {message === "¡ACERTASTE!"
               ? "¡Has acertado!"
               : `Lo siento, la palabra era "${message}".`}
           </p>

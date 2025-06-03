@@ -207,9 +207,7 @@ export function WordleApp() {
             restartGame();
           }}
           message={
-            solvedRow !== null
-              ? "¡ACERTASTE!"
-              : `La palabra era: ${wordSelected.toUpperCase()}`
+            solvedRow !== null ? "¡ACERTASTE!" : `${wordSelected.toUpperCase()}`
           }
           puntuation={solvedRow !== null ? 100 - currentRow * 10 : 0}
         />

@@ -7,7 +7,7 @@ import {
   getCurrentWord,
   generateWord,
   resetWord,
-} from "~/lib/wordle.ts";
+} from "~/utils/wordle";
 
 const EMPTY_6x5 = () => Array.from({ length: 6 }, () => Array(5).fill(""));
 
@@ -36,6 +36,7 @@ export function WordleApp() {
   useEffect(() => {
     setWords(getListOfWords());
     setWordSelected(getCurrentWord());
+    console.log("Palabra seleccionada:", getCurrentWord());
   }, []);
 
   const resetBoard = () => {
@@ -162,6 +163,15 @@ export function WordleApp() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.getAttribute("contenteditable") === "true"
+      ) {
+        return;
+      }
+
       const k = e.key.toLowerCase();
       e.preventDefault();
       if (k === "backspace") return handleKeyPress("del");
@@ -202,6 +212,7 @@ export function WordleApp() {
               ? "¡ACERTASTE!"
               : `La palabra era: ${wordSelected.toUpperCase()}`
           }
+          puntuation={solvedRow !== null ? 100 - currentRow * 10 : 0}
         />
       )}
 

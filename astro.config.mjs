@@ -1,10 +1,10 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, envField } from "astro/config";
 
 import tailwindcss from "@tailwindcss/vite";
 import icon from "astro-icon";
-
 import react from "@astrojs/react";
+import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,4 +12,18 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   integrations: [icon(), react()],
+  output: "server",
+  adapter: vercel(),
+  env: {
+    schema: {
+      TURSO_TOKEN: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      TURSO_URL: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+    },
+  },
 });

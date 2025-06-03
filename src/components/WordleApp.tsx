@@ -36,7 +36,6 @@ export function WordleApp() {
   useEffect(() => {
     setWords(getListOfWords());
     setWordSelected(getCurrentWord());
-    console.log("Palabra seleccionada:", getCurrentWord());
   }, []);
 
   const resetBoard = () => {

@@ -6,10 +6,10 @@ export async function POST({ request }: APIContext) {
 
   await turso.execute({
     sql: `
-      INSERT INTO users (username, puntuation)
+     INSERT INTO users (username, puntuation)
       VALUES (?, ?)
       ON CONFLICT(username)
-      DO UPDATE SET puntuation = excluded.puntuation;
+      DO UPDATE SET puntuation = users.puntuation + excluded.puntuation;
     `,
     args: [username, puntuation],
   });
